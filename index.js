@@ -1,4 +1,5 @@
 import dotenv from "dotenv"
+import readline from "readline"
 
 dotenv.config()
 
@@ -24,9 +25,9 @@ async function fetchYouTubePosts() {
     const getPosts = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${env_vars.CHANNELID}&type=video&publishedAfter=${lastWeekDate}&publishedBefore=${todaysDate}&key=${env_vars.API_KEY}`
     )
-    const uploadsData = await getPosts.json()
+    const youtubePosts = await getPosts.json()
 
-    uploadsData.items.forEach((item) => {
+    youtubePosts.items.forEach((item) => {
       postsTitles.push(item.snippet.title)
     })
     return postsTitles
@@ -35,5 +36,26 @@ async function fetchYouTubePosts() {
   }
 }
 
-let results = await fetchYouTubePosts()
-console.log(results)
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+})
+
+rl.question("Please enter search term: \n ", async (searchTerm) => {
+  rl.close()
+
+  let postTitles = await fetchYouTubePosts()
+
+  const searchTermInLowerCase = searchTerm.toLocaleLowerCase()
+
+  console.log("--------------------------------- \nLAST WEEKS' YOUTUBE POSTS: \n")
+  postTitles.forEach((post) => console.log(post))
+
+  const searchResults = postTitles.filter((item) =>
+    item.toLowerCase().includes(searchTermInLowerCase)
+  )
+
+  console.log("---------------------------------- \nMatched results: \n")
+  searchResults.forEach((result) => console.log(result))
+  return searchResults
+})
