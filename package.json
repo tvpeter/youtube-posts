@@ -1,0 +1,16 @@
+{
+  "name": "youtube_script",
+  "version": "1.0.0",
+  "description": "script to fetch youtube videos",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.1"
+  }
+}
