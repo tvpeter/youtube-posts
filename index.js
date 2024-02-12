@@ -15,7 +15,7 @@ Object.entries(env_vars).forEach(([key, value]) => {
 })
 
 async function fetchYouTubePosts() {
-  const postsTitles = []
+  const postDetails = {}
   try {
     const todaysDate = new Date().toISOString()
     const lastWeekDate = new Date(
@@ -23,14 +23,14 @@ async function fetchYouTubePosts() {
     ).toISOString()
 
     const getPosts = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${env_vars.CHANNELID}&type=video&publishedAfter=${lastWeekDate}&publishedBefore=${todaysDate}&key=${env_vars.API_KEY}`
+      `https://www.googleapis.com/youtube/v3/search?part=snippet,id&channelId=${env_vars.CHANNELID}&type=video&publishedAfter=${lastWeekDate}&publishedBefore=${todaysDate}&key=${env_vars.API_KEY}`
     )
     const youtubePosts = await getPosts.json()
 
     youtubePosts.items.forEach((item) => {
-      postsTitles.push(item.snippet.title)
+      postDetails[item.id.videoId] = item.snippet.title
     })
-    return postsTitles
+    return postDetails
   } catch (error) {
     console.error("Error fetching YouTube posts:", error)
   }
@@ -44,18 +44,28 @@ const rl = readline.createInterface({
 rl.question("Please enter search term: \n ", async (searchTerm) => {
   rl.close()
 
-  let postTitles = await fetchYouTubePosts()
+  let postDetails = await fetchYouTubePosts()
 
   const searchTermInLowerCase = searchTerm.toLocaleLowerCase()
 
-  console.log("--------------------------------- \nLAST WEEKS' YOUTUBE POSTS: \n")
-  postTitles.forEach((post) => console.log(post))
+  console.log(
+    "--------------------------------- \nLAST WEEKS' YOUTUBE POSTS: \n"
+  )
+  Object.entries(postDetails).forEach(([videoId, title]) => {
+    console.log(
+      `Title: ${title} => videoUrl: https://www.youtube.com/watch?v=${videoId}`
+    )
+  })
 
-  const searchResults = postTitles.filter((item) =>
-    item.toLowerCase().includes(searchTermInLowerCase)
+  const searchResults = Object.entries(postDetails).filter(([videoId, title]) =>
+    title.toLowerCase().includes(searchTermInLowerCase)
   )
 
   console.log("---------------------------------- \nMatched results: \n")
-  searchResults.forEach((result) => console.log(result))
+  searchResults.forEach(([videoId, title]) =>
+    console.log(
+      `Title: ${title} => videoUrl: https://www.youtube.com/watch?v=${videoId}`
+    )
+  )
   return searchResults
 })
